@@ -1,0 +1,16 @@
+{
+  "name": "tideholm",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "test": "npm run test -w @tideholm/engine",
+    "typecheck": "npm run typecheck -w @tideholm/engine && npm run typecheck -w @tideholm/mobile",
+    "simulate": "node --experimental-strip-types scripts/simulate.ts",
+    "sync-engine": "node scripts/sync-engine.mjs",
+    "functions:serve": "npm run sync-engine && supabase functions serve",
+    "functions:deploy": "npm run sync-engine && supabase functions deploy"
+  }
+}
