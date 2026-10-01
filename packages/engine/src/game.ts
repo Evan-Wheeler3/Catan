@@ -48,11 +48,10 @@ import type {
 import { RESOURCES } from './types.ts';
 
 export class RuleError extends Error {
-  constructor(
-    public code: string,
-    message: string,
-  ) {
+  code: string;
+  constructor(code: string, message: string) {
     super(message);
+    this.code = code;
   }
 }
 

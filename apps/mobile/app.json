@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "Tideholm",
+    "slug": "tideholm",
+    "scheme": "tideholm",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "icon": "./assets/icon.png",
+    "ios": {
+      "bundleIdentifier": "app.tideholm",
+      "supportsTablet": true,
+      "usesAppleSignIn": true,
+      "infoPlist": { "ITSAppUsesNonExemptEncryption": false }
+    },
+    "android": {
+      "package": "app.tideholm",
+      "adaptiveIcon": { "foregroundImage": "./assets/adaptive-icon.png", "backgroundColor": "#1BA3A0" },
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [{ "scheme": "https", "host": "tideholm.app", "pathPrefix": "/invite" }],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      ["expo-splash-screen", { "image": "./assets/splash.png", "imageWidth": 180, "backgroundColor": "#E6F2EE", "dark": { "backgroundColor": "#17111F" } }],
+      "expo-status-bar",
+      "expo-web-browser",
+      "expo-audio",
+      "expo-apple-authentication",
+      ["expo-notifications", { "color": "#1BA3A0" }]
+    ],
+    "experiments": { "typedRoutes": false },
+    "extra": {
+      "router": {},
+      "eas": { "projectId": "" }
+    }
+  }
+}
