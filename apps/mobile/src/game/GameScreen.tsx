@@ -24,7 +24,8 @@ import { Icon } from '../ui/icons';
 import { Banner, Button, Chip, Loading, Screen, Text } from '../ui/primitives';
 import { Sheet } from '../ui/Sheet';
 import { useSettings } from '../theme/settings';
-import { radius, space } from '../theme/tokens';
+import { space } from '../theme/tokens';
+import { PixelBox } from '../ui/PixelBox';
 import { ActionBar, type BarAction } from './ActionBar';
 import { Dice } from './Dice';
 import { FlyingCards, type Flight } from './FlyingCards';
@@ -279,25 +280,14 @@ export function GameScreen({ conn, onExit, onRematch }: { conn: GameConnection; 
       <View style={{ flex: 1 }}>
         <BoardView ref={board} state={view} targets={shownTargets} onTarget={(id) => { fb.tap(); setSelected(id); }} fresh={g.fresh} hidden={g.replay?.hidden} />
 
-        <View
-          style={{
-            position: 'absolute',
-            left: space.md,
-            right: space.md,
-            bottom: space.md,
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: space.md,
-            backgroundColor: theme.color.surface,
-            borderRadius: radius.card,
-            borderWidth: 2,
-            borderColor: theme.color.outline,
-            borderBottomWidth: 5,
-            paddingVertical: space.sm,
-            paddingHorizontal: space.md,
-          }}
-          accessibilityLiveRegion="polite"
-        >
+        <View style={{ position: 'absolute', left: space.md, right: space.md, bottom: space.md }} accessibilityLiveRegion="polite">
+          <PixelBox
+            face={theme.color.surface}
+            border={theme.color.outline}
+            lip={theme.color.cardLip}
+            lipHeight={5}
+            contentStyle={{ flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.sm, paddingHorizontal: space.md }}
+          >
           <Text variant="label" style={{ flex: 1 }}>
             {prompt}
           </Text>
@@ -311,6 +301,7 @@ export function GameScreen({ conn, onExit, onRematch }: { conn: GameConnection; 
           ) : (
             <Dice dice={view.dice} rollKey={rollKey} />
           )}
+          </PixelBox>
         </View>
 
         {g.replay && <ReplayCard replay={g.replay} seats={seats} viewer={me} onNext={g.advanceReplay} onDone={g.finishReplay} />}

@@ -1,21 +1,16 @@
 import type { PlayerView } from '@tideholm/engine';
 import { ScrollView, View } from 'react-native';
-import Svg from 'react-native-svg';
 import type { SeatInfo } from '../data/connection';
-import { Crest } from '../board/Pieces';
+import { PixelCrest } from '../board/Pieces';
 import { Avatar } from '../ui/Avatar';
 import { Icon } from '../ui/icons';
 import { Text } from '../ui/primitives';
 import { useTheme } from '../theme/settings';
-import { radius, seatStyles, space } from '../theme/tokens';
+import { seatStyles, space } from '../theme/tokens';
+import { PixelBox } from '../ui/PixelBox';
 
 export function SeatCrest({ seat, size = 14 }: { seat: number; size?: number }) {
-  const st = seatStyles[seat];
-  return (
-    <Svg width={size} height={size} viewBox="0 0 14 14">
-      <Crest shape={st.crest} x={7} y={7.4} r={5} fill={st.color} />
-    </Svg>
-  );
+  return <PixelCrest seat={seat} size={size} />;
 }
 
 /** Compact scoreboard across the top: avatar ringed in seat color, crest, VP, cards, awards. */
@@ -31,23 +26,19 @@ export function PlayerRail({ view, seats }: { view: PlayerView; seats: SeatInfo[
         const vp = me && p.totalVP !== null ? p.totalVP : p.publicVP;
         const status = discarding[p.seat] !== undefined ? 'Discarding' : current ? 'Their turn' : null;
         return (
-          <View
+          <PixelBox
             key={p.seat}
-            accessibilityLabel={`${me ? 'You' : info?.name}: ${vp} points, ${p.handCount} cards, ${p.fortuneCount} fortune cards${view.longestTrail.holder === p.seat ? ', holds Longest Trail' : ''}${view.grandWatch.holder === p.seat ? ', holds Grand Watch' : ''}${current ? ', current turn' : ''}`}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: space.sm,
-              paddingVertical: 6,
-              paddingLeft: 6,
-              paddingRight: space.md,
-              borderRadius: radius.pill,
-              backgroundColor: current ? theme.color.primary : theme.color.surface,
-              borderWidth: 2,
-              borderColor: theme.color.outline,
-              borderBottomWidth: current ? 4 : 2,
-            }}
+            face={current ? theme.color.primary : theme.color.surface}
+            border={theme.color.outline}
+            lip={current ? theme.color.primaryLip : theme.color.cardLip}
+            lipHeight={current ? 5 : 3}
+            contentStyle={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingVertical: 4, paddingLeft: 5, paddingRight: space.md }}
           >
+            <View
+              accessible
+              accessibilityLabel={`${me ? 'You' : info?.name}: ${vp} points, ${p.handCount} cards, ${p.fortuneCount} fortune cards${view.longestTrail.holder === p.seat ? ', holds Longest Trail' : ''}${view.grandWatch.holder === p.seat ? ', holds Grand Watch' : ''}${current ? ', current turn' : ''}`}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}
+            >
             <Avatar id={info?.avatar} size={34} ring={seatStyles[p.seat].color} />
             <View>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
@@ -58,9 +49,9 @@ export function PlayerRail({ view, seats }: { view: PlayerView; seats: SeatInfo[
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <Text variant="number" color={current ? theme.color.onPrimary : theme.color.ink} style={{ fontSize: 15 }}>
-                  {vp}★
+                  {vp} VP
                 </Text>
-                <View style={{ width: 9, height: 12, borderRadius: 2, borderWidth: 1.5, borderColor: theme.color.outline, backgroundColor: theme.color.surfaceAlt }} />
+                <View style={{ width: 9, height: 12, borderWidth: 2, borderColor: theme.color.outline, backgroundColor: theme.color.surfaceAlt }} />
                 <Text variant="caption" color={current ? theme.color.onPrimary : theme.color.inkSoft}>
                   {p.handCount}
                 </Text>
@@ -77,7 +68,8 @@ export function PlayerRail({ view, seats }: { view: PlayerView; seats: SeatInfo[
                 </Text>
               )}
             </View>
-          </View>
+            </View>
+          </PixelBox>
         );
       })}
     </ScrollView>

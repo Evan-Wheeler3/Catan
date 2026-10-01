@@ -33,7 +33,7 @@ function FlyingCard({ flight, onDone }: { flight: Flight; onDone: (id: string) =
   });
   return (
     <Animated.View style={[{ position: 'absolute', left: 0, top: 0 }, style]} pointerEvents="none">
-      <View style={{ width: 36, height: 48, borderRadius: 8, borderWidth: 2, borderColor: palette.inkberry, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', borderTopWidth: 10, borderTopColor: resourceColors[flight.resource] }}>
+      <View style={{ width: 36, height: 48, borderRadius: 0, borderWidth: 2, borderColor: palette.inkberry, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', borderTopWidth: 10, borderTopColor: resourceColors[flight.resource] }}>
         <ResourceIcon resource={flight.resource} size={22} />
       </View>
     </Animated.View>

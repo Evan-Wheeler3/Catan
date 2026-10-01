@@ -13,6 +13,7 @@ import {
 import { useFeedback } from '../lib/feedback';
 import { useTheme } from '../theme/settings';
 import { lip, radius, space, type } from '../theme/tokens';
+import { PixelBox } from './PixelBox';
 
 type Variant = keyof typeof type;
 
@@ -65,7 +66,6 @@ export function Button({
   };
   const t = tones[tone];
   const inactive = disabled || loading;
-  const depth = pressed ? lip.pressed : lip.rest;
   return (
     <Pressable
       accessibilityRole="button"
@@ -80,15 +80,17 @@ export function Button({
       onPressOut={() => setPressed(false)}
       onPress={onPress}
       hitSlop={6}
-      style={[{ borderRadius: radius.card, backgroundColor: t.lip, paddingBottom: depth, marginTop: lip.rest - depth, opacity: inactive ? 0.5 : 1 }, style]}
+      style={[{ opacity: inactive ? 0.5 : 1 }, style]}
     >
-      <View
-        style={{
-          backgroundColor: t.face,
-          borderRadius: radius.card,
-          borderWidth: 2,
-          borderColor: c.outline,
-          minHeight: small ? 40 : 52,
+      <PixelBox
+        face={t.face}
+        border={c.outline}
+        lip={t.lip}
+        lipHeight={pressed ? 1 : lip.rest + 1}
+        shine={tone === 'plain' ? undefined : 'rgba(255,255,255,0.35)'}
+        style={{ marginTop: pressed ? lip.rest : 0 }}
+        contentStyle={{
+          minHeight: small ? 40 : 50,
           paddingHorizontal: small ? space.md : space.xl,
           paddingVertical: small ? space.xs : space.sm,
           flexDirection: 'row',
@@ -101,7 +103,7 @@ export function Button({
         <Text variant="label" color={t.ink} style={{ fontSize: small ? 14 : 16 }} numberOfLines={1}>
           {label}
         </Text>
-      </View>
+      </PixelBox>
     </Pressable>
   );
 }
@@ -109,23 +111,19 @@ export function Button({
 export function Card({ children, style, onPress, accessibilityLabel }: { children: ReactNode; style?: StyleProp<ViewStyle>; onPress?: () => void; accessibilityLabel?: string }) {
   const theme = useTheme();
   const [pressed, setPressed] = useState(false);
+  const flat = StyleSheet.flatten(style) ?? {};
+  const { backgroundColor, opacity, ...inner } = flat;
   const body = (
-    <View
-      style={[
-        {
-          backgroundColor: theme.color.surface,
-          borderRadius: radius.card,
-          borderWidth: 2,
-          borderColor: theme.dark ? theme.color.surfaceAlt : theme.color.outline,
-          padding: space.lg,
-          borderBottomWidth: pressed ? 3 : lip.rest + 2,
-          transform: [{ translateY: pressed ? 2 : 0 }],
-        },
-        style,
-      ]}
+    <PixelBox
+      face={(backgroundColor as string) ?? theme.color.surface}
+      border={theme.dark ? theme.color.surfaceAlt : theme.color.outline}
+      lip={theme.color.cardLip}
+      lipHeight={pressed ? 2 : lip.rest + 2}
+      style={{ marginTop: pressed ? lip.rest : 0, opacity: opacity as number | undefined }}
+      contentStyle={[{ padding: space.lg }, inner]}
     >
       {children}
-    </View>
+    </PixelBox>
   );
   if (!onPress) return body;
   return (
@@ -146,6 +144,8 @@ export function Chip({ label, color, ink, icon, style }: { label: string; color?
         alignSelf: 'flex-start',
         backgroundColor: color ?? theme.color.surfaceAlt,
         borderRadius: radius.chip,
+        borderWidth: 2,
+        borderColor: theme.dark ? theme.color.surfaceAlt : theme.color.outline,
         paddingHorizontal: space.sm,
         paddingVertical: 2,
         ...StyleSheet.flatten(style),
@@ -193,7 +193,8 @@ export function Banner({ tone = 'danger', text, onDismiss }: { tone?: 'danger' |
       style={{
         backgroundColor: tone === 'danger' ? theme.color.danger : theme.color.secondary,
         borderRadius: radius.chip,
-        borderWidth: 2,
+        borderWidth: 3,
+        borderBottomWidth: 6,
         borderColor: theme.color.outline,
         padding: space.md,
       }}

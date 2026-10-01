@@ -44,7 +44,7 @@ export function Sheet({
             backgroundColor: theme.color.surface,
             borderTopLeftRadius: radius.sheet,
             borderTopRightRadius: radius.sheet,
-            borderWidth: 2,
+            borderWidth: 3,
             borderBottomWidth: 0,
             borderColor: theme.color.outline,
             paddingBottom: insets.bottom + space.lg,
@@ -59,7 +59,7 @@ export function Sheet({
         accessibilityViewIsModal
       >
         <View style={{ alignItems: 'center', paddingTop: space.sm }}>
-          <View style={{ width: 44, height: 5, borderRadius: 3, backgroundColor: theme.color.surfaceAlt }} />
+          <View style={{ flexDirection: 'row', gap: 3 }}>{[0, 1, 2, 3, 4].map((i) => <View key={i} style={{ width: 6, height: 6, backgroundColor: theme.color.surfaceAlt }} />)}</View>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: space.xl, paddingTop: space.md, paddingBottom: space.sm }}>
           <Text variant="heading" style={{ flex: 1 }} accessibilityRole="header">

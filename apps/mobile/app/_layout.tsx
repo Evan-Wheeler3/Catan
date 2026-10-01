@@ -1,5 +1,5 @@
 import { AtkinsonHyperlegible_400Regular, AtkinsonHyperlegible_700Bold } from '@expo-google-fonts/atkinson-hyperlegible';
-import { LilitaOne_400Regular } from '@expo-google-fonts/lilita-one';
+import { PixelifySans_700Bold } from '@expo-google-fonts/pixelify-sans';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -31,7 +31,7 @@ function Shell() {
 }
 
 export default function RootLayout() {
-  const [loaded, fontError] = useFonts({ LilitaOne_400Regular, AtkinsonHyperlegible_400Regular, AtkinsonHyperlegible_700Bold });
+  const [loaded, fontError] = useFonts({ PixelifySans_700Bold, AtkinsonHyperlegible_400Regular, AtkinsonHyperlegible_700Bold });
   useEffect(() => {
     if (loaded || fontError) SplashScreen.hideAsync().catch(() => {});
   }, [loaded, fontError]);

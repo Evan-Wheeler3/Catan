@@ -4,15 +4,24 @@ An asynchronous hex-island trading and building game for 3–4 friends. Settle a
 one unhurried turn at a time: games can last days, and the app nudges you when it's your move.
 
 <p>
-  <img src="docs/screenshots/game-light.png" width="240" alt="Board in light mode" />
-  <img src="docs/screenshots/game-dark.png" width="240" alt="Board in dark mode" />
-  <img src="docs/screenshots/home.png" width="240" alt="Home screen with your-turn games on top" />
+  <img src="docs/screenshots/game-light.png" width="240" alt="Pixel-art board in light mode" />
+  <img src="docs/screenshots/game-dark.png" width="240" alt="Pixel-art board in dark mode" />
+  <img src="docs/screenshots/replay.png" width="240" alt="Since you were last here replay" />
 </p>
 <p>
-  <img src="docs/screenshots/replay.png" width="240" alt="Since you were last here replay" />
-  <img src="docs/screenshots/build-sheet.png" width="240" alt="Build sheet" />
-  <img src="docs/screenshots/lobby.png" width="240" alt="Lobby with ready states" />
+  <img src="docs/screenshots/board-animated.gif" width="480" alt="Animated tiles: grazing sheep, swaying wheat, chimney smoke, waves" />
 </p>
+<p>
+  <img src="docs/screenshots/home.png" width="240" alt="Home screen empty state" />
+  <img src="docs/screenshots/build-sheet.png" width="240" alt="Build sheet" />
+  <img src="docs/screenshots/trade-sheet-dark.png" width="240" alt="Trade sheet in dark mode" />
+</p>
+
+The look is **16-bit arcade**: the island is rasterized into pixel-art tiles on one shared grid.
+Sheep graze and wander, wheat sways in passing gusts, chimneys and kilns smoke, towns fly
+pennants, a crab patrols the dunes, and waves and gulls drift across the sea. All of it runs
+as stepped 6 fps animation and is frozen under reduced motion. Menus use notched pixel panels
+and a pixel display font, while body text stays highly legible.
 
 - **Plan** (data model, action/event schema, screen map): [`docs/PLAN.md`](docs/PLAN.md)
 - **Design system** (palette, type, depth, motion, the v1 → v2 critique): [`docs/DESIGN.md`](docs/DESIGN.md)

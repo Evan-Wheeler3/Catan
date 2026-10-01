@@ -1,5 +1,10 @@
 # Tideholm — Design System
 
+> **v3 (current): 16-bit arcade.** After the first build, playtest feedback said the vector
+> style felt flat. v3 keeps the palette, player colors and layout, and re-renders everything
+> as pixel art. See [v3 below](#v3--16-bit-arcade). The v1→v2 notes that follow still explain
+> the palette and type decisions.
+
 > Tideholm is an asynchronous hex-island trading game. It should feel like a
 > premium tabletop game you keep in your pocket: chunky, tactile, friendly.
 
@@ -100,3 +105,54 @@ Sound is opt-in (off by default).
 | Knight / Road building / Year of plenty / Monopoly / VP | Warden / Trailblazer / Windfall / Embargo / Relic |
 | Longest road / Largest army | Longest Trail / Grand Watch |
 | Ports | Harbors |
+
+## v3 — 16-bit arcade
+
+**Goal:** more detail and more life on the board, without losing the clean, readable layout.
+
+### Pixel grid
+- The whole board shares **one cell grid (1 cell = 3 board units)**. The island is
+  *rasterized* cell by cell (`apps/mobile/src/board/raster.ts`): each cell is classified as
+  tile, seam, bevel, beach, foam or shallows, so hex edges step naturally like a real 16-bit
+  tilemap.
+- Tiles get a 1-cell ink seam, a top-left highlight and a dithered bottom-right shadow.
+  Each terrain has its own texture (ploughed rows, sand ripples, clay strata, rock speckle,
+  grass flecks), all from a deterministic hash, so a board always looks the same.
+- Pieces, trails, the Raider and cursors snap to the same grid.
+- Rendering: each layer is flattened to **one SVG path per color**, so a full animated frame
+  is about 30 `<Path>` elements, cached per frame.
+
+### Detail per terrain
+| Terrain | Static art | Animated (6 fps, stepped) |
+| --- | --- | --- |
+| Grove | pines, small pines, a mushroom | — |
+| Meadow | fences, tufts, flowers | a sheep paces the pasture; another grazes and lifts its head |
+| Fields | ploughed rows, a post | wheat stalks sway as a gust rolls left→right |
+| Crags | snow-capped mountains, rocks, mine cart | — |
+| Claypit | clay mounds, kiln, brick stack | kiln smoke |
+| Dunes | cacti, shell, bone, ripples | a crab scuttles back and forth |
+| Ocean | foam line, shallows | waves bob and drift, sparkles blink, a gull crosses |
+| Outposts / towns | crest on the wall, patterned roof | chimney smoke; towns fly a pennant in the seat color |
+
+### Readability rules
+- Number discs are the brightest element on every tile: a cream face, a 1-cell ink rim,
+  bold 5×7 bitmap digits (6 and 8 in red), and a 2-cell lip for thickness. Scenery is kept
+  clear of the disc.
+- The Raider dims its disc with a translucent shade, so the number stays legible.
+- Every sprite has an ink outline, so it stays readable on any terrain.
+- Legal spots are blinking gold pixel rings (corner brackets for tiles). With reduced
+  motion they're static.
+
+### UI chrome
+- **PixelBox**: notched (stepped-corner) panels built from overlapping Views, with a 3pt
+  outline and a solid lip. Used for buttons, cards, the player rail, the prompt bar, hand
+  cards, offers, the replay card and the win panel. All radii are now 0.
+- **Type**: **Pixelify Sans** (bold) for display, headings and numbers. Body text stays
+  **Atkinson Hyperlegible**, because long text in a pixel font is tiring to read.
+- **Icons and avatars**: hand-drawn 12-cell icons and 16-cell sea-creature avatars on
+  stepped round badges. In icons, `K` follows the theme ink and `m` the accent fill.
+- **Motion**: stepped wherever it's sprite-like (6 fps tiles, dice that flick faces and hop
+  a whole pixel at a time, the Raider's idle bob, cursor blinks). Springs stay only on piece
+  drops, because the bounce is the satisfying part.
+- **Sound**: original chiptune effects (dice rattle, placement bop, coin-chirp card,
+  victory fanfare). Still off by default.

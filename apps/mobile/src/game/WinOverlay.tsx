@@ -2,15 +2,15 @@ import type { PlayerView } from '@tideholm/engine';
 import { useEffect, useMemo } from 'react';
 import { Modal, View, useWindowDimensions } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSpring, withTiming } from 'react-native-reanimated';
-import Svg from 'react-native-svg';
 import type { SeatInfo } from '../data/connection';
-import { Crest } from '../board/Pieces';
+import { PixelCrest } from '../board/Pieces';
 import { useFeedback } from '../lib/feedback';
 import { Avatar } from '../ui/Avatar';
 import { Icon } from '../ui/icons';
 import { Button, Text } from '../ui/primitives';
 import { useSettings } from '../theme/settings';
-import { radius, seatStyles, space } from '../theme/tokens';
+import { seatStyles, space } from '../theme/tokens';
+import { PixelBox } from '../ui/PixelBox';
 
 function Confetto({ i, width, height }: { i: number; width: number; height: number }) {
   const fall = useSharedValue(0);
@@ -29,9 +29,7 @@ function Confetto({ i, width, height }: { i: number; width: number; height: numb
   }));
   return (
     <Animated.View style={[{ position: 'absolute', top: 0, left: 0 }, style]} pointerEvents="none">
-      <Svg width={16} height={16} viewBox="0 0 14 14">
-        <Crest shape={seatStyles[seat].crest} x={7} y={7} r={5} fill={seatStyles[seat].color} />
-      </Svg>
+      <PixelCrest seat={seat} size={18} />
     </Animated.View>
   );
 }
@@ -57,13 +55,8 @@ export function WinOverlay({ view, seats, onHome, onRematch }: { view: PlayerVie
     <Modal transparent animationType="fade" statusBarTranslucent>
       <View style={{ flex: 1, backgroundColor: theme.color.scrim, justifyContent: 'center', padding: space.xl }}>
         {!reduceMotion && Array.from({ length: 36 }, (_, i) => <Confetto key={i} i={i} width={width} height={height} />)}
-        <Animated.View
-          style={[
-            { backgroundColor: theme.color.surface, borderRadius: radius.sheet, borderWidth: 3, borderColor: theme.color.outline, borderBottomWidth: 8, padding: space.xl, gap: space.lg, alignItems: 'center' },
-            stampStyle,
-          ]}
-          accessibilityRole="alert"
-        >
+        <Animated.View style={stampStyle} accessibilityRole="alert">
+          <PixelBox face={theme.color.surface} border={theme.color.outline} lip={theme.color.primaryLip} lipHeight={8} u={4} contentStyle={{ padding: space.xl, gap: space.lg, alignItems: 'center' }}>
           <View style={{ alignItems: 'center' }}>
             <Icon name="crown" size={44} />
             <Avatar id={seats[winner]?.avatar} size={84} ring={seatStyles[winner].color} />
@@ -89,6 +82,7 @@ export function WinOverlay({ view, seats, onHome, onRematch }: { view: PlayerVie
             <Button tone="plain" label="Harbor" onPress={onHome} style={{ flex: 1 }} />
             {onRematch && <Button label="Rematch" onPress={onRematch} style={{ flex: 1 }} />}
           </View>
+          </PixelBox>
         </Animated.View>
       </View>
     </Modal>

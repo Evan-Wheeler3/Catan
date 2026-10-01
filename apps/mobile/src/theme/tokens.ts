@@ -94,20 +94,21 @@ export const darkTheme: Theme = {
 };
 
 export const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32, xxxl: 48 } as const;
-export const radius = { chip: 10, card: 18, sheet: 28, pill: 999 } as const;
+// 16-bit look: square corners everywhere; notches come from PixelBox.
+export const radius = { chip: 0, card: 0, sheet: 0, pill: 0 } as const;
 export const lip = { rest: 4, pressed: 1 } as const;
 
 export const fonts = {
-  display: 'LilitaOne_400Regular',
+  display: 'PixelifySans_700Bold',
   body: 'AtkinsonHyperlegible_400Regular',
   bodyBold: 'AtkinsonHyperlegible_700Bold',
 } as const;
 
 export const type = {
-  display: { fontFamily: fonts.display, fontSize: 40, lineHeight: 44, letterSpacing: 0.5 },
-  heading: { fontFamily: fonts.display, fontSize: 24, lineHeight: 28, letterSpacing: 0.3 },
-  title: { fontFamily: fonts.display, fontSize: 19, lineHeight: 23, letterSpacing: 0.2 },
-  number: { fontFamily: fonts.display, fontSize: 18, lineHeight: 22 },
+  display: { fontFamily: fonts.display, fontSize: 40, lineHeight: 46, letterSpacing: 1 },
+  heading: { fontFamily: fonts.display, fontSize: 26, lineHeight: 30, letterSpacing: 0.6 },
+  title: { fontFamily: fonts.display, fontSize: 20, lineHeight: 24, letterSpacing: 0.4 },
+  number: { fontFamily: fonts.display, fontSize: 19, lineHeight: 22 },
   body: { fontFamily: fonts.body, fontSize: 16, lineHeight: 22 },
   label: { fontFamily: fonts.bodyBold, fontSize: 15, lineHeight: 20 },
   caption: { fontFamily: fonts.body, fontSize: 13, lineHeight: 18 },
@@ -125,10 +126,10 @@ export const terrainColors = {
 
 /** Color-blind-safe seat colors (Okabe–Ito derived) + crest shape + roof pattern. */
 export const seatStyles = [
-  { name: 'Ember', color: '#D55E00', light: '#F08A3E', ink: '#FFFFFF', crest: 'circle', pattern: 'solid' },
-  { name: 'Tide', color: '#0072B2', light: '#3A9AD6', ink: '#FFFFFF', crest: 'triangle', pattern: 'stripes' },
-  { name: 'Orchid', color: '#CC79A7', light: '#E3A3C6', ink: '#2A1F3D', crest: 'square', pattern: 'dots' },
-  { name: 'Chalk', color: '#F2EFE6', light: '#FFFFFF', ink: '#2A1F3D', crest: 'diamond', pattern: 'checks' },
+  { name: 'Ember', color: '#D55E00', light: '#F08A3E', dark: '#9E4400', mark: '#F59A55', ink: '#FFFFFF', crest: 'circle', pattern: 'solid' },
+  { name: 'Tide', color: '#0072B2', light: '#3A9AD6', dark: '#004F7C', mark: '#7FC8F0', ink: '#FFFFFF', crest: 'triangle', pattern: 'stripes' },
+  { name: 'Orchid', color: '#CC79A7', light: '#E3A3C6', dark: '#9A5480', mark: '#F6CFE4', ink: '#2A1F3D', crest: 'square', pattern: 'dots' },
+  { name: 'Chalk', color: '#F2EFE6', light: '#FFFFFF', dark: '#C4BCA6', mark: '#A69E88', ink: '#2A1F3D', crest: 'diamond', pattern: 'checks' },
 ] as const;
 
 export type SeatStyle = (typeof seatStyles)[number];

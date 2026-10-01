@@ -66,7 +66,7 @@ function Stepper({
       style={{
         width: d,
         height: d,
-        borderRadius: d / 2,
+        borderRadius: 0,
         borderWidth: 2,
         borderColor: theme.dark ? theme.color.inkFaint : theme.color.outline,
         backgroundColor: disabled ? theme.color.surfaceAlt : theme.color.surface,
@@ -453,7 +453,7 @@ export function FortuneSheet({
           const reason = reasonFor(c.kind, c.boughtOnTurn);
           return (
             <Card key={c.id} style={{ flexDirection: 'row', gap: space.md, alignItems: 'center' }}>
-              <View style={{ width: 52, height: 70, borderRadius: 10, borderWidth: 2, borderColor: theme.color.outline, backgroundColor: theme.color.secondary, alignItems: 'center', justifyContent: 'center' }}>
+              <View style={{ width: 52, height: 70, borderRadius: 0, borderWidth: 2, borderColor: theme.color.outline, backgroundColor: theme.color.secondary, alignItems: 'center', justifyContent: 'center' }}>
                 <Icon name={FORTUNE_ICON[c.kind]} size={30} fill={theme.color.primary} />
               </View>
               <View style={{ flex: 1, gap: 4 }}>

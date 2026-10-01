@@ -4,19 +4,14 @@ import { topology, type Board, type Building, type Seat } from '@tideholm/engine
 import { forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { Pressable, View, type LayoutChangeEvent } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, {
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withSpring,
-  withTiming,
-} from 'react-native-reanimated';
-import Svg, { Path } from 'react-native-svg';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import type { ColorPath } from '../pixel/canvas';
+import { PixelSvg, useArcadeFrame } from '../pixel/PixelArt';
 import { useSettings } from '../theme/settings';
-import { IslandSvg } from './IslandSvg';
+import { seatStyles } from '../theme/tokens';
 import { BOARD_H, BOARD_W, edgePos, hexPos, vertexPos } from './layout';
-import { Glow, OutpostSvg, Placed, RaiderSvg, TownSvg, TrailSvg } from './Pieces';
+import { buildingPlacement, PixelCursor, Placed, raiderPlacement, trailPlacement, cursorArt } from './Pieces';
+import { CELL, LOOP, TOKEN_DY, groundFrame, raiderShade, rasterizeIsland, skyFrame } from './raster';
 
 export type TargetKind = 'vertex' | 'edge' | 'hex';
 export interface Targets {
@@ -39,30 +34,41 @@ export interface BoardHandle {
   hexCenter: (hex: number) => { x: number; y: number };
 }
 
-const Waves = memo(function Waves({ reduceMotion }: { reduceMotion: boolean }) {
-  const { theme } = useSettings();
-  const drift = useSharedValue(0);
-  useEffect(() => {
-    if (!reduceMotion) drift.value = withRepeat(withTiming(1, { duration: 8000, easing: Easing.inOut(Easing.sin) }), -1, true);
-  }, [reduceMotion, drift]);
-  const style = useAnimatedStyle(() => ({ transform: [{ translateX: drift.value * 14 - 7 }, { translateY: drift.value * 4 }], opacity: 0.55 + drift.value * 0.25 }));
-  const marks = useMemo(() => {
-    const out: string[] = [];
-    // Deterministic scatter of little wave marks around the island.
-    for (let i = 0; i < 70; i++) {
-      const x = ((i * 97) % (BOARD_W + 120)) - 60;
-      const y = ((i * 61 + (i % 7) * 37) % (BOARD_H + 120)) - 60;
-      out.push(`M${x} ${y} q6 -5 12 0 t12 0`);
-    }
-    return out.join(' ');
-  }, []);
-  return (
-    <Animated.View pointerEvents="none" style={[{ position: 'absolute', left: -60, top: -60, width: BOARD_W + 120, height: BOARD_H + 120 }, style]}>
-      <Svg width={BOARD_W + 120} height={BOARD_H + 120}>
-        <Path d={marks} stroke={theme.dark ? '#2BC2BE' : '#FFFFFF'} strokeWidth={2.4} fill="none" strokeLinecap="round" opacity={0.6} />
-      </Svg>
-    </Animated.View>
-  );
+/** Static island art, rasterized once per board. */
+const Island = memo(function Island({ board }: { board: Board }) {
+  const paths = useMemo(() => rasterizeIsland(board), [board]);
+  return <PixelSvg paths={paths} width={BOARD_W} height={BOARD_H} style={{ position: 'absolute', left: 0, top: 0 }} />;
+});
+
+const RaiderShade = memo(function RaiderShade({ hex }: { hex: number }) {
+  const paths = useMemo(() => raiderShade(hex), [hex]);
+  return <PixelSvg paths={paths} width={BOARD_W} height={BOARD_H} style={{ position: 'absolute', left: 0, top: 0 }} />;
+});
+
+/** Waves, gulls, sheep, wheat and kiln smoke — frames are composited once and cached. */
+const Ground = memo(function Ground({ board, paused }: { board: Board; paused: boolean }) {
+  const frame = useArcadeFrame(paused) % LOOP;
+  const cache = useMemo(() => new Map<number, ColorPath[]>(), [board]);
+  let paths = cache.get(frame);
+  if (!paths) {
+    paths = groundFrame(board, frame);
+    cache.set(frame, paths);
+  }
+  return <PixelSvg paths={paths} width={BOARD_W} height={BOARD_H} style={{ position: 'absolute', left: 0, top: 0 }} />;
+});
+
+/** Chimney smoke and town pennants above the pieces. */
+const Sky = memo(function Sky({ buildings, paused }: { buildings: (Building | null)[]; paused: boolean }) {
+  const frame = useArcadeFrame(paused) % LOOP;
+  const signature = buildings.map((b) => (b ? `${b.owner}${b.kind[0]}` : '')).join(',');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const cache = useMemo(() => new Map<number, ColorPath[]>(), [signature]);
+  let paths = cache.get(frame);
+  if (!paths) {
+    paths = skyFrame(buildings, seatStyles.map((s) => s.color), frame);
+    cache.set(frame, paths);
+  }
+  return <PixelSvg paths={paths} width={BOARD_W} height={BOARD_H} style={{ position: 'absolute', left: 0, top: 0 }} />;
 });
 
 export const BoardView = forwardRef<
@@ -83,7 +89,7 @@ export const BoardView = forwardRef<
   const container = useRef<View>(null);
 
   // Fit the island (not the whole ocean margin) to the available space.
-  const fit = size.w ? Math.min(size.w / (BOARD_W - 70), size.h / (BOARD_H - 40)) : 0.5;
+  const fit = size.w ? Math.min(size.w / (BOARD_W - 24), size.h / (BOARD_H - 24)) : 0.5;
   const scale = useSharedValue(fit);
   const savedScale = useSharedValue(fit);
   const tx = useSharedValue(0);
@@ -187,14 +193,13 @@ export const BoardView = forwardRef<
               boardStyle,
             ]}
           >
-            <Waves reduceMotion={reduceMotion} />
-            <IslandSvg board={state.board} raiderHex={state.raiderHex} />
+            <Island board={state.board} />
+            {state.board.hexes[state.raiderHex].token !== null && <RaiderShade hex={state.raiderHex} />}
+            <Ground board={state.board} paused={reduceMotion} />
 
             {state.trails.map((owner, e) =>
               owner === null || hidden?.has(`e${e}`) ? null : (
-                <Placed key={`e${e}`} x={edgePos[e].x} y={edgePos[e].y} w={edgePos[e].length * 0.72} h={16} rotate={edgePos[e].angle} animate={fresh.has(`e${e}`)} reduceMotion={reduceMotion}>
-                  <TrailSvg seat={owner} length={edgePos[e].length * 0.72} />
-                </Placed>
+                <Placed key={`e${e}`} p={trailPlacement(e, owner)} animate={fresh.has(`e${e}`)} reduceMotion={reduceMotion} />
               ),
             )}
             {state.buildings.map((raw, v) => {
@@ -202,25 +207,14 @@ export const BoardView = forwardRef<
               const veiled = hidden?.has(`v${v}`);
               const b = raw && veiled ? (raw.kind === 'town' ? { ...raw, kind: 'outpost' as const } : null) : raw;
               return !b ? null : (
-                <Placed
-                  key={`v${v}-${b.kind}`}
-                  x={vertexPos[v].x}
-                  y={vertexPos[v].y - 4}
-                  w={b.kind === 'town' ? 44 : 32}
-                  h={b.kind === 'town' ? 42 : 34}
-                  animate={fresh.has(`v${v}`)}
-                  reduceMotion={reduceMotion}
-                >
-                  {b.kind === 'town' ? <TownSvg seat={b.owner} /> : <OutpostSvg seat={b.owner} />}
-                </Placed>
+                <Placed key={`v${v}-${b.kind}`} p={buildingPlacement(b.kind, b.owner, v)} animate={fresh.has(`v${v}`)} reduceMotion={reduceMotion} />
               );
             })}
-            <Placed key={`raider-${state.raiderHex}`} x={hexPos[state.raiderHex].x + 26} y={hexPos[state.raiderHex].y - 6} w={34} h={42} animate={fresh.has('raider')} reduceMotion={reduceMotion}>
-              <RaiderSvg />
-            </Placed>
+            <Placed key={`raider-${state.raiderHex}`} p={raiderPlacement(state.raiderHex)} animate={fresh.has('raider')} reduceMotion={reduceMotion} bob />
+            <Sky buildings={state.buildings} paused={reduceMotion} />
 
             {targets?.ids.map((id) => {
-              const p = targets.kind === 'vertex' ? vertexPos[id] : targets.kind === 'edge' ? edgePos[id] : { x: hexPos[id].x, y: hexPos[id].y + 10 };
+              const p = targets.kind === 'vertex' ? vertexPos[id] : targets.kind === 'edge' ? edgePos[id] : { x: hexPos[id].x, y: hexPos[id].y + TOKEN_DY * CELL };
               const hit = targets.kind === 'hex' ? 76 : targets.kind === 'vertex' ? 56 : 48;
               const desc =
                 targets.kind === 'hex'
@@ -242,16 +236,9 @@ export const BoardView = forwardRef<
                     height: hit,
                     alignItems: 'center',
                     justifyContent: 'center',
-                    transform: targets.kind === 'edge' ? [{ rotate: `${edgePos[id].angle}deg` }] : undefined,
                   }}
                 >
-                  <Glow
-                    size={targets.kind === 'hex' ? 50 : 24}
-                    shape={targets.kind === 'edge' ? 'capsule' : 'circle'}
-                    length={targets.kind === 'edge' ? 40 : undefined}
-                    reduceMotion={reduceMotion}
-                    color={theme.color.glow}
-                  />
+                  <PixelCursor kind={targets.kind} color={theme.color.glow} reduceMotion={reduceMotion} />
                 </Pressable>
               );
             })}

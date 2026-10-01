@@ -6,7 +6,8 @@ import type { SeatInfo } from '../data/connection';
 import { Avatar } from '../ui/Avatar';
 import { Button, Text } from '../ui/primitives';
 import { useSettings } from '../theme/settings';
-import { radius, seatStyles, space } from '../theme/tokens';
+import { seatStyles, space } from '../theme/tokens';
+import { PixelBox } from '../ui/PixelBox';
 import type { ReplayState } from './useGame';
 
 function actorOf(e: ReplayState['steps'][number]['event']): number | null {
@@ -46,23 +47,8 @@ export function ReplayCard({
   const actor = actorOf(step.event);
   const text = describeEvent(step.event, names, viewer) ?? '';
   return (
-    <View
-      style={{
-        position: 'absolute',
-        bottom: 84,
-        left: space.md,
-        right: space.md,
-        backgroundColor: theme.color.surface,
-        borderRadius: radius.card,
-        borderWidth: 2,
-        borderColor: theme.color.outline,
-        borderBottomWidth: 6,
-        paddingHorizontal: space.md,
-        paddingVertical: space.sm,
-        gap: 6,
-      }}
-      accessibilityLiveRegion="polite"
-    >
+    <View style={{ position: 'absolute', bottom: 84, left: space.md, right: space.md }} accessibilityLiveRegion="polite">
+      <PixelBox face={theme.color.surface} border={theme.color.outline} lip={theme.color.secondaryLip} lipHeight={6} contentStyle={{ paddingHorizontal: space.md, paddingVertical: space.sm, gap: 6 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <Text variant="title">{finished ? "You're all caught up" : 'Since you were last here'}</Text>
         <Text variant="caption" color={theme.color.inkSoft}>
@@ -75,13 +61,14 @@ export function ReplayCard({
           <Text style={{ flex: 1 }}>{text}</Text>
         </Animated.View>
       )}
-      <View style={{ height: 6, borderRadius: 3, backgroundColor: theme.color.surfaceAlt, overflow: 'hidden' }}>
+      <View style={{ height: 6, borderRadius: 0, backgroundColor: theme.color.surfaceAlt, overflow: 'hidden' }}>
         <View style={{ height: 6, width: `${(Math.min(replay.index, replay.steps.length) / replay.steps.length) * 100}%`, backgroundColor: theme.color.secondary }} />
       </View>
       <View style={{ flexDirection: 'row', gap: space.sm }}>
         {!finished && <Button small tone="plain" label="Skip" onPress={onDone} style={{ flex: 1 }} />}
         <Button small tone={finished ? 'primary' : 'secondary'} label={finished ? "Let's play" : 'Next'} onPress={finished ? onDone : onNext} style={{ flex: 1 }} />
       </View>
+      </PixelBox>
     </View>
   );
 }

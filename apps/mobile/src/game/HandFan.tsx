@@ -4,6 +4,7 @@ import { View, useWindowDimensions } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import { ResourceIcon } from '../ui/icons';
 import { Text } from '../ui/primitives';
+import { PixelBox } from '../ui/PixelBox';
 import { useSettings } from '../theme/settings';
 import { palette, resourceColors } from '../theme/tokens';
 
@@ -19,30 +20,20 @@ function ResourceCard({ resource, count, angle, offsetY }: { resource: (typeof R
   const style = useAnimatedStyle(() => ({ transform: [{ translateY: offsetY }, { rotate: `${angle}deg` }, { scale: bump.value }] }));
   return (
     <Animated.View
-      style={[{ width: CARD_W, height: CARD_H, marginHorizontal: -6 }, style]}
+      style={[{ width: CARD_W, height: CARD_H, marginHorizontal: -3 }, style]}
       accessibilityLabel={`${count} ${RESOURCE_LABEL[resource]}`}
     >
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: theme.dark ? '#2E2342' : '#FFFFFF',
-          borderRadius: 12,
-          borderWidth: 2,
-          borderColor: theme.color.outline,
-          borderBottomWidth: 5,
-          alignItems: 'center',
-          justifyContent: 'center',
-          overflow: 'hidden',
-        }}
-      >
-        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 26, backgroundColor: resourceColors[resource], opacity: 0.85 }} />
-        <View style={{ backgroundColor: '#FFFFFF', borderRadius: 20, padding: 4, borderWidth: 2, borderColor: palette.inkberry, marginTop: 4 }}>
-          <ResourceIcon resource={resource} size={26} />
+      <PixelBox face={theme.dark ? '#2E2342' : '#FFFFFF'} border={theme.color.outline} lip={theme.color.cardLip} lipHeight={4} style={{ flex: 1 }} contentStyle={{ flex: 1 }}>
+        <View style={{ height: 22, backgroundColor: resourceColors[resource] }} />
+        <View style={{ alignItems: 'center', marginTop: -12 }}>
+          <View style={{ backgroundColor: '#FFF8EA', padding: 3, borderWidth: 3, borderColor: palette.inkberry }}>
+            <ResourceIcon resource={resource} size={26} />
+          </View>
+          <Text variant="caption" style={{ marginTop: 1, fontSize: 11 }} numberOfLines={1}>
+            {RESOURCE_LABEL[resource]}
+          </Text>
         </View>
-        <Text variant="caption" style={{ marginTop: 2, fontSize: 11 }} numberOfLines={1}>
-          {RESOURCE_LABEL[resource]}
-        </Text>
-      </View>
+      </PixelBox>
       <View
         style={{
           position: 'absolute',
@@ -50,9 +41,9 @@ function ResourceCard({ resource, count, angle, offsetY }: { resource: (typeof R
           right: -4,
           minWidth: 26,
           height: 26,
-          borderRadius: 13,
+          borderRadius: 0,
           backgroundColor: theme.color.primary,
-          borderWidth: 2,
+          borderWidth: 3,
           borderColor: theme.color.outline,
           alignItems: 'center',
           justifyContent: 'center',
@@ -82,12 +73,11 @@ export function HandFan({ hand }: { hand: ResourceCounts }) {
       </View>
     );
   }
-  const spread = Math.min(8, 30 / Math.max(1, n - 1));
   return (
     <View style={{ height: CARD_H + 12, flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-end', maxWidth: width }} accessibilityLabel="Your hand">
       {held.map((r, i) => {
         const centered = i - (n - 1) / 2;
-        return <ResourceCard key={r} resource={r} count={hand[r]} angle={centered * spread} offsetY={Math.abs(centered) * Math.abs(centered) * 2.2} />;
+        return <ResourceCard key={r} resource={r} count={hand[r]} angle={0} offsetY={Math.round(Math.abs(centered) * Math.abs(centered) * 1.5) * 3} />;
       })}
     </View>
   );
