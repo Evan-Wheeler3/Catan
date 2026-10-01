@@ -13,6 +13,9 @@ import { BOARD_H, BOARD_W, edgePos, hexPos, vertexPos } from './layout';
 import { buildingPlacement, PixelCursor, Placed, raiderPlacement, trailPlacement, cursorArt } from './Pieces';
 import { CELL, LOOP, TOKEN_DY, groundFrame, raiderShade, rasterizeIsland, skyFrame } from './raster';
 
+/** Height of the prompt bar overlaying the board's bottom edge. */
+const PROMPT_BAR = 84;
+
 export type TargetKind = 'vertex' | 'edge' | 'hex';
 export interface Targets {
   kind: TargetKind;
@@ -89,7 +92,8 @@ export const BoardView = forwardRef<
   const container = useRef<View>(null);
 
   // Fit the island (not the whole ocean margin) to the available space.
-  const fit = size.w ? Math.min(size.w / (BOARD_W - 24), size.h / (BOARD_H - 24)) : 0.5;
+  // The game's prompt bar floats over the bottom of the board; fit the island above it.
+  const fit = size.w ? Math.min(size.w / (BOARD_W - 24), (size.h - PROMPT_BAR) / (BOARD_H - 24)) : 0.5;
   const scale = useSharedValue(fit);
   const savedScale = useSharedValue(fit);
   const tx = useSharedValue(0);
@@ -117,7 +121,7 @@ export const BoardView = forwardRef<
     () => ({
       toWindow: (p) => ({
         x: origin.current.x + size.w / 2 + (p.x - BOARD_W / 2) * scale.value + tx.value,
-        y: origin.current.y + size.h / 2 + (p.y - BOARD_H / 2) * scale.value + ty.value,
+        y: origin.current.y + (size.h - PROMPT_BAR) / 2 + (p.y - BOARD_H / 2) * scale.value + ty.value,
       }),
       hexCenter: (hex) => hexPos[hex],
     }),
@@ -140,7 +144,7 @@ export const BoardView = forwardRef<
       const next = Math.min(minScale.value * 3.6, Math.max(minScale.value, savedScale.value * e.scale));
       const k = next / savedScale.value;
       const fx = e.focalX - size.w / 2;
-      const fy = e.focalY - size.h / 2;
+      const fy = e.focalY - (size.h - PROMPT_BAR) / 2;
       scale.value = next;
       tx.value = clampT(fx - (fx - savedTx.value) * k, next, size.w, BOARD_W);
       ty.value = clampT(fy - (fy - savedTy.value) * k, next, size.h, BOARD_H);
@@ -164,7 +168,7 @@ export const BoardView = forwardRef<
       const zoomedIn = scale.value > minScale.value / 0.9 * 1.3;
       const next = zoomedIn ? minScale.value / 0.9 : (minScale.value / 0.9) * 2;
       const fx = e.x - size.w / 2;
-      const fy = e.y - size.h / 2;
+      const fy = e.y - (size.h - PROMPT_BAR) / 2;
       const spring = { damping: 18, stiffness: 160 };
       scale.value = withSpring(next, spring);
       tx.value = withSpring(zoomedIn ? 0 : clampT(-fx, next, size.w, BOARD_W), spring);
@@ -189,7 +193,7 @@ export const BoardView = forwardRef<
         {size.w > 0 && (
           <Animated.View
             style={[
-              { position: 'absolute', width: BOARD_W, height: BOARD_H, left: (size.w - BOARD_W) / 2, top: (size.h - BOARD_H) / 2 },
+              { position: 'absolute', width: BOARD_W, height: BOARD_H, left: (size.w - BOARD_W) / 2, top: (size.h - PROMPT_BAR - BOARD_H) / 2 },
               boardStyle,
             ]}
           >

@@ -133,6 +133,19 @@ Email codes from the local stack appear in Mailpit at http://127.0.0.1:54324.
 | Functions | `MIN_PLAYERS` | Minimum seats to start a game (default 3). |
 | Scripts | `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `FUNCTIONS_URL` | Used by `npm run simulate -- --online`. |
 
+### Single-page web build (practice only)
+
+The offline practice game also ships as one self-contained HTML page, with the bundle and
+assets inlined. It runs on any phone browser with no backend:
+
+```bash
+cd apps/mobile && npx expo export --clear --platform web --output-dir /tmp/tideholm-web   # EXPO_PUBLIC_SUPABASE_* unset
+cd ../.. && node scripts/build-web-single.mjs /tmp/tideholm-web dist/tideholm.html
+```
+
+If browser storage is blocked (private mode, sandboxed frames), the game keeps running from
+memory for the session.
+
 ## Running two simulated players locally
 
 The simulator signs in two bot accounts (`sim_tide`, `sim_ember`) on your local backend. They

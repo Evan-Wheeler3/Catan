@@ -6,7 +6,14 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { Platform } from 'react-native';
 import { supabase } from './supabase';
 
-WebBrowser.maybeCompleteAuthSession();
+// Only needed for the Google OAuth redirect; on web it touches localStorage, which can be blocked.
+if (supabase) {
+  try {
+    WebBrowser.maybeCompleteAuthSession();
+  } catch {
+    /* storage unavailable: OAuth popups can't complete, other sign-in still works */
+  }
+}
 
 export interface Profile {
   id: string;

@@ -157,9 +157,33 @@ interface PracticeSave {
   name: string;
 }
 
+/**
+ * In-memory copy of the practice save. Device storage can be unavailable (private browsing,
+ * sandboxed web frames); the game then still works for the session, it just isn't kept.
+ */
+let memorySave: string | null = null;
+
+async function readSave(): Promise<string | null> {
+  try {
+    return (await AsyncStorage.getItem(PRACTICE_KEY)) ?? memorySave;
+  } catch {
+    return memorySave;
+  }
+}
+
+async function writeSave(raw: string | null): Promise<void> {
+  memorySave = raw;
+  try {
+    if (raw === null) await AsyncStorage.removeItem(PRACTICE_KEY);
+    else await AsyncStorage.setItem(PRACTICE_KEY, raw);
+  } catch {
+    // Storage blocked: the in-memory copy keeps this session playable.
+  }
+}
+
 export async function hasPracticeGame(): Promise<PracticeSave | null> {
   try {
-    const raw = await AsyncStorage.getItem(PRACTICE_KEY);
+    const raw = await readSave();
     if (!raw) return null;
     const save = JSON.parse(raw) as PracticeSave;
     return save.state?.version === 1 ? save : null;
@@ -173,11 +197,11 @@ export async function newPracticeGame(opponents: number, name: string, avatar: s
   const players = [{ userId: ME, name }, ...BOT_NAMES.slice(0, opponents).map((n, i) => ({ userId: `bot${i}`, name: n }))];
   const state = createGame({ seed, players });
   const save: PracticeSave = { state, events: [], lastSeen: 0, avatar, name };
-  await AsyncStorage.setItem(PRACTICE_KEY, JSON.stringify(save));
+  await writeSave(JSON.stringify(save));
 }
 
 export async function clearPracticeGame() {
-  await AsyncStorage.removeItem(PRACTICE_KEY);
+  await writeSave(null);
 }
 
 export function practiceConnection(botDelayMs = 700): GameConnection {
@@ -187,7 +211,7 @@ export function practiceConnection(botDelayMs = 700): GameConnection {
   let closed = false;
 
   const mySeat = () => save.state.players.find((p) => p.userId === ME)!.seat;
-  const persist = () => AsyncStorage.setItem(PRACTICE_KEY, JSON.stringify(save)).catch(() => {});
+  const persist = () => writeSave(JSON.stringify(save));
   const snapshot = (fresh: SeqEvent[]): GameSnapshot => {
     const seat = mySeat();
     return {
