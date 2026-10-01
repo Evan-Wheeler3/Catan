@@ -220,23 +220,35 @@ export function practiceConnection(botDelayMs = 700): GameConnection {
     return { ok: true };
   };
 
+  /** One bot step, or false if no bot has anything to do. */
+  const botStep = (emitEvents: boolean): boolean => {
+    if (save.state.phase.kind === 'ended') return false;
+    const me = mySeat();
+    const order = [save.state.currentSeat, ...save.state.players.map((p) => p.seat)].filter((s) => s !== me);
+    for (const seat of order) {
+      const action = chooseBotAction(redactState(save.state, seat), seat);
+      if (!action) continue;
+      if (emitEvents) {
+        const r = apply(seat, action);
+        if (!r.ok) console.warn('bot move rejected', r.message);
+        return r.ok;
+      }
+      const res = applyAction(save.state, seat, action);
+      if (!res.ok) return false;
+      save.state = res.state;
+      save.events = [...save.events, ...res.events.map((event, idx) => ({ seq: res.state.seq, idx, event }))].slice(-400);
+      return true;
+    }
+    return false;
+  };
+
   /** Bots act one step at a time so the player can watch what happens. */
   const scheduleBots = () => {
     if (timer || closed) return;
     timer = setTimeout(() => {
       timer = null;
-      if (closed || save.state.phase.kind === 'ended') return;
-      const me = mySeat();
-      const order = [save.state.currentSeat, ...save.state.players.map((p) => p.seat)].filter((s) => s !== me);
-      for (const seat of order) {
-        const action = chooseBotAction(redactState(save.state, seat), seat);
-        if (action) {
-          const r = apply(seat, action);
-          if (!r.ok) console.warn('bot move rejected', r.message);
-          scheduleBots();
-          return;
-        }
-      }
+      if (closed) return;
+      if (botStep(true)) scheduleBots();
     }, botDelayMs);
   };
 
@@ -246,6 +258,11 @@ export function practiceConnection(botDelayMs = 700): GameConnection {
       const loaded = await hasPracticeGame();
       if (!loaded) return { error: 'No practice game yet. Start one from the home screen.' };
       save = loaded;
+      // Like friends playing while you were away: bots catch up instantly, and the
+      // replay shows what they did.
+      let steps = 0;
+      while (steps++ < 300 && botStep(false));
+      if (steps > 1) persist();
       const unseen = save.events.filter((e) => e.seq > save.lastSeen).map((e) => ({ ...e, event: redactEvent(e.event, mySeat()) }));
       scheduleBots();
       return { snapshot: snapshot([]), unseen };

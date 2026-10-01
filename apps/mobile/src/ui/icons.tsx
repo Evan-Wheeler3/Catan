@@ -69,7 +69,11 @@ export function ResourceIcon({ resource, size = 24 }: { resource: Resource } & G
   const theme = useTheme();
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" accessibilityElementsHidden importantForAccessibility="no">
-      <ResourceGlyph resource={resource} ink={theme.dark ? '#0D0913' : palette.inkberry} />
+      {/* On dark surfaces glyphs sit on a pale token so their ink outlines stay legible. */}
+      {theme.dark && <Circle cx={12} cy={12} r={11.5} fill="#E6F2EE" />}
+      <G transform={theme.dark ? 'translate(2.4 2.4) scale(0.8)' : undefined}>
+        <ResourceGlyph resource={resource} ink={palette.inkberry} />
+      </G>
     </Svg>
   );
 }

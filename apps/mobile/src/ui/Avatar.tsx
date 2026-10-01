@@ -1,6 +1,8 @@
 // Original sea-creature avatars, drawn as simple duotone SVGs on a colored disc.
+import { Pressable, View } from 'react-native';
 import Svg, { Circle, Ellipse, G, Path } from 'react-native-svg';
-import { palette } from '../theme/tokens';
+import { useTheme } from '../theme/settings';
+import { palette, radius, space } from '../theme/tokens';
 
 export const AVATARS = ['gull', 'turtle', 'crab', 'puffin', 'otter', 'whale', 'octopus', 'seal'] as const;
 export type AvatarId = (typeof AVATARS)[number];
@@ -112,3 +114,24 @@ export function Avatar({ id, size = 48, ring }: { id: string | null | undefined;
     </Svg>
   );
 }
+
+export function AvatarPicker({ value, onChange }: { value: string; onChange: (a: string) => void }) {
+  const theme = useTheme();
+  return (
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.md, justifyContent: 'center' }} accessibilityRole="radiogroup">
+      {AVATARS.map((a) => (
+        <Pressable
+          key={a}
+          onPress={() => onChange(a)}
+          accessibilityRole="radio"
+          accessibilityState={{ selected: value === a }}
+          accessibilityLabel={a}
+          style={{ padding: 4, borderRadius: radius.pill, borderWidth: 3, borderColor: value === a ? theme.color.primary : 'transparent' }}
+        >
+          <Avatar id={a} size={64} />
+        </Pressable>
+      ))}
+    </View>
+  );
+}
+

@@ -1,4 +1,5 @@
 // Friends + game list hooks (RLS-protected reads, RPC writes, Realtime refresh).
+import * as Linking from 'expo-linking';
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from './auth';
 import { supabase } from './supabase';
@@ -93,6 +94,11 @@ export async function respondFriend(id: string, accept: boolean) {
 
 export async function removeFriend(id: string) {
   await supabase?.rpc('remove_friend', { other: id });
+}
+
+export function inviteUrl(code: string): string {
+  const host = process.env.EXPO_PUBLIC_INVITE_HOST;
+  return host ? `https://${host}/invite/${code}` : Linking.createURL(`invite/${code}`);
 }
 
 export async function myInviteCode(): Promise<string | null> {

@@ -27,7 +27,7 @@ export interface ApiError {
 }
 
 /** Calls an Edge Function and unwraps our `{ error: { code, message } }` envelope. */
-export async function callFunction<T>(name: string, body: unknown): Promise<{ data: T; error: null } | { data: null; error: ApiError }> {
+export async function callFunction<T>(name: string, body: Record<string, unknown>): Promise<{ data: T; error: null } | { data: null; error: ApiError }> {
   if (!supabase) return { data: null, error: { code: 'offline', message: 'Online play is not set up on this build.' } };
   const { data, error } = await supabase.functions.invoke(name, { body });
   if (!error) return { data: data as T, error: null };

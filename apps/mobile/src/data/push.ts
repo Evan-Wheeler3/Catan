@@ -7,12 +7,12 @@ import { useEffect } from 'react';
 import { Platform } from 'react-native';
 import { supabase } from './supabase';
 
-Notifications.setNotificationHandler({
+if (Platform.OS !== 'web') Notifications.setNotificationHandler({
   handleNotification: async () => ({ shouldShowBanner: true, shouldShowList: true, shouldPlaySound: false, shouldSetBadge: true }),
 });
 
 export async function registerForPush(userId: string): Promise<string | null> {
-  if (!supabase || !Device.isDevice) return null;
+  if (!supabase || !Device.isDevice || Platform.OS === 'web') return null;
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('turns', {
       name: 'Turns & trades',
@@ -36,6 +36,7 @@ export async function registerForPush(userId: string): Promise<string | null> {
 /** Opens the game when a notification is tapped (including cold starts). */
 export function useNotificationRouting() {
   useEffect(() => {
+    if (Platform.OS === 'web') return;
     const open = (data: Record<string, unknown> | undefined) => {
       if (typeof data?.gameId === 'string') router.push(`/game/${data.gameId}`);
     };

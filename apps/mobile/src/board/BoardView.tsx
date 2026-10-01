@@ -73,15 +73,17 @@ export const BoardView = forwardRef<
     onTarget: (id: number) => void;
     /** Keys of pieces that should animate in: `v12`, `e40`, `raider`. */
     fresh: Set<string>;
-    raiderVictimHint?: number | null;
+    /** Pieces not yet revealed by the "since you were last here" replay. */
+    hidden?: Set<string>;
   }
->(function BoardView({ state, targets, onTarget, fresh }, ref) {
+>(function BoardView({ state, targets, onTarget, fresh, hidden }, ref) {
   const { theme, reduceMotion } = useSettings();
   const [size, setSize] = useState({ w: 0, h: 0 });
   const origin = useRef({ x: 0, y: 0 });
   const container = useRef<View>(null);
 
-  const fit = size.w ? Math.min(size.w / BOARD_W, size.h / BOARD_H) * 1.02 : 0.5;
+  // Fit the island (not the whole ocean margin) to the available space.
+  const fit = size.w ? Math.min(size.w / (BOARD_W - 70), size.h / (BOARD_H - 40)) : 0.5;
   const scale = useSharedValue(fit);
   const savedScale = useSharedValue(fit);
   const tx = useSharedValue(0);
@@ -189,14 +191,17 @@ export const BoardView = forwardRef<
             <IslandSvg board={state.board} raiderHex={state.raiderHex} />
 
             {state.trails.map((owner, e) =>
-              owner === null ? null : (
+              owner === null || hidden?.has(`e${e}`) ? null : (
                 <Placed key={`e${e}`} x={edgePos[e].x} y={edgePos[e].y} w={edgePos[e].length * 0.72} h={16} rotate={edgePos[e].angle} animate={fresh.has(`e${e}`)} reduceMotion={reduceMotion}>
                   <TrailSvg seat={owner} length={edgePos[e].length * 0.72} />
                 </Placed>
               ),
             )}
-            {state.buildings.map((b, v) =>
-              !b ? null : (
+            {state.buildings.map((raw, v) => {
+              // During the replay an unrevealed town shows as the outpost it was; an unrevealed outpost is absent.
+              const veiled = hidden?.has(`v${v}`);
+              const b = raw && veiled ? (raw.kind === 'town' ? { ...raw, kind: 'outpost' as const } : null) : raw;
+              return !b ? null : (
                 <Placed
                   key={`v${v}-${b.kind}`}
                   x={vertexPos[v].x}
@@ -208,8 +213,8 @@ export const BoardView = forwardRef<
                 >
                   {b.kind === 'town' ? <TownSvg seat={b.owner} /> : <OutpostSvg seat={b.owner} />}
                 </Placed>
-              ),
-            )}
+              );
+            })}
             <Placed key={`raider-${state.raiderHex}`} x={hexPos[state.raiderHex].x + 26} y={hexPos[state.raiderHex].y - 6} w={34} h={42} animate={fresh.has('raider')} reduceMotion={reduceMotion}>
               <RaiderSvg />
             </Placed>
@@ -241,7 +246,7 @@ export const BoardView = forwardRef<
                   }}
                 >
                   <Glow
-                    size={targets.kind === 'hex' ? 52 : 30}
+                    size={targets.kind === 'hex' ? 50 : 24}
                     shape={targets.kind === 'edge' ? 'capsule' : 'circle'}
                     length={targets.kind === 'edge' ? 40 : undefined}
                     reduceMotion={reduceMotion}
