@@ -38,10 +38,10 @@ export function ReplayCard({
   const names = seats.map((s) => s.name);
 
   useEffect(() => {
-    if (finished) return;
-    const t = setTimeout(onNext, reduceMotion ? 1600 : 1100);
+    // Step automatically; once finished, linger briefly on "all caught up" and get out of the way.
+    const t = finished ? setTimeout(onDone, 1500) : setTimeout(onNext, reduceMotion ? 1600 : 1100);
     return () => clearTimeout(t);
-  }, [replay.index, finished, onNext, reduceMotion]);
+  }, [replay.index, finished, onNext, onDone, reduceMotion]);
 
   const actor = actorOf(step.event);
   const text = describeEvent(step.event, names, viewer) ?? '';

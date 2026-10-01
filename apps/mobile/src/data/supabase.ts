@@ -26,24 +26,25 @@ export interface ApiError {
   message: string;
 }
 
+// Optional override, e.g. the Docker-free dev server (supabase/functions/dev-server.ts).
+const functionsUrl = process.env.EXPO_PUBLIC_FUNCTIONS_URL || (url ? `${url}/functions/v1` : '');
+
 /** Calls an Edge Function and unwraps our `{ error: { code, message } }` envelope. */
 export async function callFunction<T>(name: string, body: Record<string, unknown>): Promise<{ data: T; error: null } | { data: null; error: ApiError }> {
   if (!supabase) return { data: null, error: { code: 'offline', message: 'Online play is not set up on this build.' } };
-  const { data, error } = await supabase.functions.invoke(name, { body });
-  if (!error) return { data: data as T, error: null };
-  // FunctionsHttpError carries the response; pull our friendly message out of it.
+  const { data: auth } = await supabase.auth.getSession();
+  if (!auth.session) return { data: null, error: { code: 'signed_out', message: 'Please sign in again.' } };
   try {
-    const ctx = (error as { context?: Response }).context;
-    const payload = ctx ? await ctx.json() : null;
-    if (payload?.error) return { data: null, error: payload.error as ApiError };
+    const res = await fetch(`${functionsUrl}/${name}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: anonKey!, Authorization: `Bearer ${auth.session.access_token}` },
+      body: JSON.stringify(body),
+    });
+    const payload = await res.json().catch(() => null);
+    if (res.ok) return { data: payload as T, error: null };
+    if (payload?.error?.message) return { data: null, error: payload.error as ApiError };
+    return { data: null, error: { code: `http_${res.status}`, message: 'Something went wrong. Please try again.' } };
   } catch {
-    /* fall through */
+    return { data: null, error: { code: 'network', message: "Can't reach the harbor right now. Check your connection and try again." } };
   }
-  const offline = /network|fetch/i.test(error.message);
-  return {
-    data: null,
-    error: offline
-      ? { code: 'network', message: "Can't reach the harbor right now. Check your connection and try again." }
-      : { code: 'unknown', message: 'Something went wrong. Please try again.' },
-  };
 }

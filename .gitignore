@@ -13,3 +13,4 @@ supabase/functions/_shared/engine/
 coverage/
 .DS_Store
 supabase/functions/deno.lock
+.env.functions

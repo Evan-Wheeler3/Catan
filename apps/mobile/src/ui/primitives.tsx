@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
+  StyleSheet,
   Pressable,
   Text as RNText,
   View,
@@ -134,7 +135,7 @@ export function Card({ children, style, onPress, accessibilityLabel }: { childre
   );
 }
 
-export function Chip({ label, color, ink, icon }: { label: string; color?: string; ink?: string; icon?: ReactNode }) {
+export function Chip({ label, color, ink, icon, style }: { label: string; color?: string; ink?: string; icon?: ReactNode; style?: StyleProp<ViewStyle> }) {
   const theme = useTheme();
   return (
     <View
@@ -147,6 +148,7 @@ export function Chip({ label, color, ink, icon }: { label: string; color?: strin
         borderRadius: radius.chip,
         paddingHorizontal: space.sm,
         paddingVertical: 2,
+        ...StyleSheet.flatten(style),
       }}
     >
       {icon}

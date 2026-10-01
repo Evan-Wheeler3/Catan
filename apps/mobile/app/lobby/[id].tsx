@@ -111,6 +111,7 @@ export default function Lobby() {
               label={m.user_id === game.host && m.status !== 'declined' ? 'Host' : statusLabel[m.status]}
               color={m.status === 'ready' ? theme.color.success : undefined}
               ink={m.status === 'ready' ? '#FFFFFF' : undefined}
+              style={{ alignSelf: 'center' }}
             />
           </Card>
         ))}
