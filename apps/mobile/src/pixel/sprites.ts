@@ -242,6 +242,8 @@ export interface SeatArt {
   mark: string;
   crest: 'circle' | 'triangle' | 'square' | 'diamond';
   pattern: 'solid' | 'stripes' | 'dots' | 'checks';
+  /** Crest color on the walls: white on dark seats, ink on light ones. */
+  crestInk?: string;
 }
 
 const CRESTS: Record<SeatArt['crest'], Sprite> = {
@@ -258,19 +260,19 @@ export function crestSprite(crest: SeatArt['crest']): Sprite {
 function roofColor(art: SeatArt, x: number, y: number): string {
   switch (art.pattern) {
     case 'stripes':
-      return (x + y) % 3 === 0 ? art.mark : art.roof;
+      return (x + y) % 3 === 0 ? art.mark : art.roofDark;
     case 'dots':
-      return x % 2 === 0 && y % 2 === 0 ? art.mark : art.roof;
+      return x % 2 === 0 && y % 2 === 0 ? art.mark : art.roofDark;
     case 'checks':
-      return (x + y) % 2 === 0 ? art.mark : art.roof;
+      return (x + y) % 2 === 0 ? art.mark : art.roofDark;
     default:
-      return art.roof;
+      return art.roofDark;
   }
 }
 
 function crest(cv: PixelCanvas, art: SeatArt, x: number, y: number): void {
   CRESTS[art.crest].forEach((row, j) => {
-    for (let i = 0; i < row.length; i++) if (row[i] === '#') cv.set(x + i, y + j, INK);
+    for (let i = 0; i < row.length; i++) if (row[i] === '#') cv.set(x + i, y + j, art.crestInk ?? INK);
   });
 }
 
@@ -285,12 +287,12 @@ export function drawOutpost(cv: PixelCanvas, art: SeatArt): void {
     const x1 = 8 + r;
     for (let x = x0; x <= x1; x++) {
       const edge = x === x0 || x === x1 || r === 0 || r === 6;
-      cv.set(x, y, edge ? INK : x === x1 - 1 ? art.roofDark : roofColor(art, x, y));
+      cv.set(x, y, edge ? INK : x === x0 + 1 ? art.roof : roofColor(art, x, y));
     }
   }
   // Walls
-  cv.box(1, 8, 13, 7, PAL.C, INK);
-  cv.rect(2, 13, 11, 1, '#E3D3A6');
+  cv.box(1, 8, 13, 7, art.roof, INK);
+  cv.rect(2, 13, 11, 1, art.roofDark);
   crest(cv, art, 3, 9);
   // Door
   cv.box(9, 10, 3, 5, PAL.b, INK);
@@ -305,7 +307,8 @@ export function drawTown(cv: PixelCanvas, art: SeatArt): void {
     const x1 = 15 + r;
     for (let x = x0; x <= x1; x++) cv.set(x, r, x === x0 || x === x1 || r === 0 ? INK : roofColor(art, x, r));
   }
-  cv.box(11, 3, 8, 17, PAL.C, INK);
+  cv.box(11, 3, 8, 17, art.roof, INK);
+  cv.rect(17, 4, 1, 15, art.roofDark);
   cv.box(14, 7, 2, 3, '#7BC6FF', INK);
   cv.box(14, 12, 2, 3, '#7BC6FF', INK);
   // Pennant pole (the flag itself is animated in the sky layer)
@@ -321,8 +324,8 @@ export function drawTown(cv: PixelCanvas, art: SeatArt): void {
       cv.set(x, y, Math.abs(i) === half || r === 5 || r === 0 ? INK : roofColor(art, x, y));
     }
   }
-  cv.box(0, 10, 12, 10, PAL.C, INK);
-  cv.rect(1, 18, 10, 1, '#E3D3A6');
+  cv.box(0, 10, 12, 10, art.roof, INK);
+  cv.rect(1, 18, 10, 1, art.roofDark);
   crest(cv, art, 2, 12);
   cv.box(8, 14, 3, 6, PAL.b, INK);
   cv.box(8, 11, 3, 2, '#7BC6FF', INK);

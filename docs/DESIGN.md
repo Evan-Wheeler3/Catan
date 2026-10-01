@@ -132,7 +132,7 @@ Sound is opt-in (off by default).
 | Claypit | clay mounds, kiln, brick stack | kiln smoke |
 | Dunes | cacti, shell, bone, ripples | a crab scuttles back and forth |
 | Ocean | foam line, shallows | waves bob and drift, sparkles blink, a gull crosses |
-| Outposts / towns | crest on the wall, patterned roof | chimney smoke; towns fly a pennant in the seat color |
+| Outposts / towns | solid seat color (walls + darker patterned roof), crest on the wall, light halo rim | chimney smoke; towns fly a pennant in the seat color |
 
 ### Readability rules
 - Number discs are the brightest element on every tile: a cream face, a 1-cell ink rim,

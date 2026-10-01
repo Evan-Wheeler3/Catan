@@ -74,6 +74,17 @@ export class PixelCanvas {
     return x0 === Infinity ? null : { x0, y0, x1, y1 };
   }
 
+  /** Adds a 1-cell outer halo around everything drawn, so sprites pop off busy backgrounds. */
+  halo(color: string): void {
+    const add: [number, number][] = [];
+    this.cells.forEach((_c, k) => {
+      const y = Math.floor(k / 8192) - KEY_OFFSET;
+      const x = (k % 8192) - KEY_OFFSET;
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) if (!this.cells.has(key(x + dx, y + dy))) add.push([x + dx, y + dy]);
+    });
+    for (const [x, y] of add) this.set(x, y, color);
+  }
+
   merge(other: PixelCanvas): void {
     other.cells.forEach((c, k) => this.cells.set(k, c));
   }

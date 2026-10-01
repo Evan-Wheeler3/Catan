@@ -9,9 +9,12 @@ import { crestSprite, drawOutpost, drawTown, INK, PAL, RAIDER, type SeatArt } fr
 import { seatStyles } from '../theme/tokens';
 import { CELL, hexCell, pieceOrigin, TOKEN_DY, vertexCell } from './raster';
 
+/** Light rim around pieces so team colors read against any terrain. */
+const HALO = '#FFF8EA';
+
 export function seatArt(seat: number): SeatArt {
   const s = seatStyles[seat];
-  return { roof: s.color, roofDark: s.dark, mark: s.mark, crest: s.crest, pattern: s.pattern };
+  return { roof: s.color, roofDark: s.dark, mark: s.mark, crest: s.crest, pattern: s.pattern, crestInk: s.ink };
 }
 
 interface Placement {
@@ -29,6 +32,7 @@ export function buildingPlacement(kind: 'outpost' | 'town', seat: number, vertex
   if (!base) {
     const cv = new PixelCanvas();
     (kind === 'outpost' ? drawOutpost : drawTown)(cv, seatArt(seat));
+    cv.halo(HALO);
     const a = canvasArt(cv, CELL);
     base = { art: a, left: a.x0, top: a.y0 };
     pieceCache.set(k, base);
@@ -65,6 +69,7 @@ export function trailPlacement(edge: number, seat: number): Placement {
       } else if (d <= 2.4) cv.set(x, y, INK);
     }
   }
+  cv.halo(HALO);
   const a = canvasArt(cv, CELL);
   p = { art: a, left: a.x0 * CELL, top: a.y0 * CELL };
   pieceCache.set(k, p);
